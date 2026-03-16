@@ -42,8 +42,13 @@ const ItemSchema = CollectionSchema(
       name: r'price',
       type: IsarType.double,
     ),
-    r'projectId': PropertySchema(
+    r'priceCents': PropertySchema(
       id: 5,
+      name: r'priceCents',
+      type: IsarType.long,
+    ),
+    r'projectId': PropertySchema(
+      id: 6,
       name: r'projectId',
       type: IsarType.long,
     )
@@ -103,7 +108,8 @@ void _itemSerialize(
   writer.writeBool(offsets[2], object.isChecked);
   writer.writeString(offsets[3], object.name);
   writer.writeDouble(offsets[4], object.price);
-  writer.writeLong(offsets[5], object.projectId);
+  writer.writeLong(offsets[5], object.priceCents);
+  writer.writeLong(offsets[6], object.projectId);
 }
 
 Item _itemDeserialize(
@@ -118,9 +124,10 @@ Item _itemDeserialize(
     isChecked: reader.readBoolOrNull(offsets[2]) ?? false,
     name: reader.readString(offsets[3]),
     price: reader.readDouble(offsets[4]),
-    projectId: reader.readLong(offsets[5]),
+    projectId: reader.readLong(offsets[6]),
   );
   object.createdAt = reader.readDateTime(offsets[1]);
+  object.priceCents = reader.readLong(offsets[5]);
   return object;
 }
 
@@ -142,6 +149,8 @@ P _itemDeserializeProp<P>(
     case 4:
       return (reader.readDouble(offset)) as P;
     case 5:
+      return (reader.readLong(offset)) as P;
+    case 6:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -782,6 +791,58 @@ extension ItemQueryFilter on QueryBuilder<Item, Item, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Item, Item, QAfterFilterCondition> priceCentsEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'priceCents',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Item, Item, QAfterFilterCondition> priceCentsGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'priceCents',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Item, Item, QAfterFilterCondition> priceCentsLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'priceCents',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Item, Item, QAfterFilterCondition> priceCentsBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'priceCents',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Item, Item, QAfterFilterCondition> projectIdEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -900,6 +961,18 @@ extension ItemQuerySortBy on QueryBuilder<Item, Item, QSortBy> {
     });
   }
 
+  QueryBuilder<Item, Item, QAfterSortBy> sortByPriceCents() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'priceCents', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Item, Item, QAfterSortBy> sortByPriceCentsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'priceCents', Sort.desc);
+    });
+  }
+
   QueryBuilder<Item, Item, QAfterSortBy> sortByProjectId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'projectId', Sort.asc);
@@ -986,6 +1059,18 @@ extension ItemQuerySortThenBy on QueryBuilder<Item, Item, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Item, Item, QAfterSortBy> thenByPriceCents() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'priceCents', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Item, Item, QAfterSortBy> thenByPriceCentsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'priceCents', Sort.desc);
+    });
+  }
+
   QueryBuilder<Item, Item, QAfterSortBy> thenByProjectId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'projectId', Sort.asc);
@@ -1032,6 +1117,12 @@ extension ItemQueryWhereDistinct on QueryBuilder<Item, Item, QDistinct> {
     });
   }
 
+  QueryBuilder<Item, Item, QDistinct> distinctByPriceCents() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'priceCents');
+    });
+  }
+
   QueryBuilder<Item, Item, QDistinct> distinctByProjectId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'projectId');
@@ -1073,6 +1164,12 @@ extension ItemQueryProperty on QueryBuilder<Item, Item, QQueryProperty> {
   QueryBuilder<Item, double, QQueryOperations> priceProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'price');
+    });
+  }
+
+  QueryBuilder<Item, int, QQueryOperations> priceCentsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'priceCents');
     });
   }
 

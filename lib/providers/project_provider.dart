@@ -28,6 +28,16 @@ class ProjectActions {
     await repository.create(title: title, budget: budget);
   }
 
+  Future<void> update({
+    required int projectId,
+    required String title,
+    double? budget,
+  }) async {
+    final isar = await _ref.read(databaseProvider.future);
+    final repository = ProjectRepository(isar);
+    await repository.update(projectId: projectId, title: title, budget: budget);
+  }
+
   Future<void> delete(int projectId) async {
     final isar = await _ref.read(databaseProvider.future);
     final repository = ProjectRepository(isar);

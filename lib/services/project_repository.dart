@@ -19,6 +19,22 @@ class ProjectRepository {
     });
   }
 
+  Future<void> update({
+    required int projectId,
+    required String title,
+    double? budget,
+  }) async {
+    final project = await _isar.projects.get(projectId);
+    if (project == null) return;
+
+    project.title = title.trim();
+    project.budget = budget;
+
+    await _isar.writeTxn(() async {
+      await _isar.projects.put(project);
+    });
+  }
+
   Future<void> delete(int projectId) async {
     await _isar.writeTxn(() async {
       await _isar.items.filter().projectIdEqualTo(projectId).deleteAll();

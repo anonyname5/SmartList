@@ -7,10 +7,12 @@ import '../providers/item_provider.dart';
 class AddItemDialog extends ConsumerStatefulWidget {
   const AddItemDialog({
     required this.projectId,
+    this.item,
     super.key,
   });
 
   final int projectId;
+  final Item? item;
 
   @override
   ConsumerState<AddItemDialog> createState() => _AddItemDialogState();
@@ -18,10 +20,20 @@ class AddItemDialog extends ConsumerStatefulWidget {
 
 class _AddItemDialogState extends ConsumerState<AddItemDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _priceController = TextEditingController();
-  final _categoryController = TextEditingController();
+  late final TextEditingController _nameController;
+  late final TextEditingController _priceController;
+  late final TextEditingController _categoryController;
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.item?.name ?? '');
+    _priceController = TextEditingController(
+      text: widget.item?.price.toStringAsFixed(2) ?? '',
+    );
+    _categoryController = TextEditingController(text: widget.item?.category ?? '');
+  }
 
   @override
   void dispose() {
@@ -36,12 +48,21 @@ class _AddItemDialogState extends ConsumerState<AddItemDialog> {
 
     setState(() => _saving = true);
 
-    await ref.read(itemActionsProvider).add(
-          projectId: widget.projectId,
-          name: _nameController.text,
-          price: double.parse(_priceController.text.trim()),
-          category: _categoryController.text,
-        );
+    if (widget.item == null) {
+      await ref.read(itemActionsProvider).add(
+            projectId: widget.projectId,
+            name: _nameController.text,
+            price: double.parse(_priceController.text.trim()),
+            category: _categoryController.text,
+          );
+    } else {
+      await ref.read(itemActionsProvider).update(
+            item: widget.item!,
+            name: _nameController.text,
+            price: double.parse(_priceController.text.trim()),
+            category: _categoryController.text,
+          );
+    }
 
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -50,7 +71,7 @@ class _AddItemDialogState extends ConsumerState<AddItemDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Add Item'),
+      title: Text(widget.item == null ? 'Add Item' : 'Edit Item'),
       content: Form(
         key: _formKey,
         child: Column(
@@ -89,7 +110,7 @@ class _AddItemDialogState extends ConsumerState<AddItemDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Save'),
+              : Text(widget.item == null ? 'Save' : 'Update'),
         ),
       ],
     );

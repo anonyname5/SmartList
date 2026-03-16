@@ -62,7 +62,7 @@ Status: Milestones 0-5 mostly implemented, QA in progress
 - [x] Create `ProjectRepository`:
   - [x] Create project
   - [x] Read all projects
-  - [ ] Update project
+  - [x] Update project
   - [x] Delete project
 - [x] Create `ItemRepository`:
   - [x] Add item
@@ -127,7 +127,7 @@ Status: Milestones 0-5 mostly implemented, QA in progress
   - [x] Delete item
 - [x] Implement budget warning indicator if exceeded
 - [x] Standardize money formatting in all screens
-- [ ] Handle decimal precision safely
+- [x] Handle decimal precision safely
 
 ## Milestone 6 - UX Polish (MVP-safe)
 
@@ -183,10 +183,10 @@ Status: Milestones 0-5 mostly implemented, QA in progress
 
 - [ ] M0: Setup completed (pending emulator/device run check)
 - [x] M1: Models completed
-- [ ] M2: Isar storage completed (project update flow pending)
+- [x] M2: Isar storage completed (project update flow done)
 - [x] M3: Riverpod state completed
 - [x] M4: Core screens completed
-- [ ] M5: Logic + budget warning completed (decimal precision hardening pending)
+- [x] M5: Logic + budget warning completed (decimal precision hardening done)
 - [ ] M6: Polish completed
 - [ ] M7: Tests completed
 - [ ] MVP ready for first release

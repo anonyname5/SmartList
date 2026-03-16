@@ -37,6 +37,17 @@ class ItemActions {
     await repository.toggleChecked(item);
   }
 
+  Future<void> update({
+    required Item item,
+    required String name,
+    required double price,
+    String? category,
+  }) async {
+    final isar = await _ref.read(databaseProvider.future);
+    final repository = ItemRepository(isar);
+    await repository.update(item: item, name: name, price: price, category: category);
+  }
+
   Future<void> delete(int itemId) async {
     final isar = await _ref.read(databaseProvider.future);
     final repository = ItemRepository(isar);

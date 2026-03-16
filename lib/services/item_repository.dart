@@ -36,6 +36,20 @@ class ItemRepository {
     });
   }
 
+  Future<void> update({
+    required Item item,
+    required String name,
+    required double price,
+    String? category,
+  }) async {
+    await _isar.writeTxn(() async {
+      item.name = name.trim();
+      item.price = price;
+      item.category = category?.trim().isEmpty == true ? null : category?.trim();
+      await _isar.items.put(item);
+    });
+  }
+
   Future<void> delete(int itemId) async {
     await _isar.writeTxn(() async {
       await _isar.items.delete(itemId);

@@ -144,6 +144,16 @@ class _ItemTile extends ConsumerWidget {
         motion: const ScrollMotion(),
         children: [
           SlidableAction(
+            onPressed: (_) => showDialog<void>(
+              context: context,
+              builder: (_) => AddItemDialog(projectId: item.projectId, item: item),
+            ),
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+            icon: Icons.edit,
+            label: 'Edit',
+          ),
+          SlidableAction(
             onPressed: (_) async {
               await ref.read(itemActionsProvider).delete(item.id);
             },

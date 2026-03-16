@@ -97,6 +97,14 @@ class _ProjectCard extends ConsumerWidget {
                     ),
                   ),
                   IconButton(
+                    tooltip: 'Edit project',
+                    onPressed: () => showDialog<void>(
+                      context: context,
+                      builder: (_) => CreateProjectDialog(project: project),
+                    ),
+                    icon: const Icon(Icons.edit_outlined),
+                  ),
+                  IconButton(
                     tooltip: 'Delete project',
                     onPressed: () async {
                       final shouldDelete = await showDialog<bool>(

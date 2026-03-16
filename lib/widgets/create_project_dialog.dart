@@ -5,7 +5,12 @@ import '../models/project.dart';
 import '../providers/project_provider.dart';
 
 class CreateProjectDialog extends ConsumerStatefulWidget {
-  const CreateProjectDialog({super.key});
+  const CreateProjectDialog({
+    this.project,
+    super.key,
+  });
+
+  final Project? project;
 
   @override
   ConsumerState<CreateProjectDialog> createState() => _CreateProjectDialogState();
@@ -13,9 +18,18 @@ class CreateProjectDialog extends ConsumerStatefulWidget {
 
 class _CreateProjectDialogState extends ConsumerState<CreateProjectDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _budgetController = TextEditingController();
+  late final TextEditingController _titleController;
+  late final TextEditingController _budgetController;
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.project?.title ?? '');
+    _budgetController = TextEditingController(
+      text: widget.project?.budget?.toStringAsFixed(2) ?? '',
+    );
+  }
 
   @override
   void dispose() {
@@ -32,10 +46,18 @@ class _CreateProjectDialogState extends ConsumerState<CreateProjectDialog> {
     final budgetText = _budgetController.text.trim();
     final budget = budgetText.isEmpty ? null : double.tryParse(budgetText);
 
-    await ref.read(projectActionsProvider).create(
-          title: _titleController.text,
-          budget: budget,
-        );
+    if (widget.project == null) {
+      await ref.read(projectActionsProvider).create(
+            title: _titleController.text,
+            budget: budget,
+          );
+    } else {
+      await ref.read(projectActionsProvider).update(
+            projectId: widget.project!.id,
+            title: _titleController.text,
+            budget: budget,
+          );
+    }
 
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -44,7 +66,7 @@ class _CreateProjectDialogState extends ConsumerState<CreateProjectDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Create Project'),
+      title: Text(widget.project == null ? 'Create Project' : 'Edit Project'),
       content: Form(
         key: _formKey,
         child: Column(
@@ -63,15 +85,7 @@ class _CreateProjectDialogState extends ConsumerState<CreateProjectDialog> {
                 labelText: 'Budget (Optional)',
                 hintText: 'e.g. 500',
               ),
-              validator: (value) {
-                final text = value?.trim() ?? '';
-                if (text.isEmpty) return null;
-                final parsed = double.tryParse(text);
-                if (parsed == null || parsed < 0) {
-                  return 'Enter a valid budget';
-                }
-                return null;
-              },
+              validator: Project.validateBudget,
             ),
           ],
         ),
@@ -89,7 +103,7 @@ class _CreateProjectDialogState extends ConsumerState<CreateProjectDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Save'),
+              : Text(widget.project == null ? 'Create' : 'Update'),
         ),
       ],
     );

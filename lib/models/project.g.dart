@@ -22,13 +22,18 @@ const ProjectSchema = CollectionSchema(
       name: r'budget',
       type: IsarType.double,
     ),
-    r'createdDate': PropertySchema(
+    r'budgetCents': PropertySchema(
       id: 1,
+      name: r'budgetCents',
+      type: IsarType.long,
+    ),
+    r'createdDate': PropertySchema(
+      id: 2,
       name: r'createdDate',
       type: IsarType.dateTime,
     ),
     r'title': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'title',
       type: IsarType.string,
     )
@@ -64,8 +69,9 @@ void _projectSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDouble(offsets[0], object.budget);
-  writer.writeDateTime(offsets[1], object.createdDate);
-  writer.writeString(offsets[2], object.title);
+  writer.writeLong(offsets[1], object.budgetCents);
+  writer.writeDateTime(offsets[2], object.createdDate);
+  writer.writeString(offsets[3], object.title);
 }
 
 Project _projectDeserialize(
@@ -77,9 +83,10 @@ Project _projectDeserialize(
   final object = Project(
     budget: reader.readDoubleOrNull(offsets[0]),
     id: id,
-    title: reader.readString(offsets[2]),
+    title: reader.readString(offsets[3]),
   );
-  object.createdDate = reader.readDateTime(offsets[1]);
+  object.budgetCents = reader.readLongOrNull(offsets[1]);
+  object.createdDate = reader.readDateTime(offsets[2]);
   return object;
 }
 
@@ -93,8 +100,10 @@ P _projectDeserializeProp<P>(
     case 0:
       return (reader.readDoubleOrNull(offset)) as P;
     case 1:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 2:
+      return (reader.readDateTime(offset)) as P;
+    case 3:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -264,6 +273,75 @@ extension ProjectQueryFilter
         upper: upper,
         includeUpper: includeUpper,
         epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> budgetCentsIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'budgetCents',
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> budgetCentsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'budgetCents',
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> budgetCentsEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'budgetCents',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> budgetCentsGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'budgetCents',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> budgetCentsLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'budgetCents',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> budgetCentsBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'budgetCents',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -523,6 +601,18 @@ extension ProjectQuerySortBy on QueryBuilder<Project, Project, QSortBy> {
     });
   }
 
+  QueryBuilder<Project, Project, QAfterSortBy> sortByBudgetCents() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'budgetCents', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterSortBy> sortByBudgetCentsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'budgetCents', Sort.desc);
+    });
+  }
+
   QueryBuilder<Project, Project, QAfterSortBy> sortByCreatedDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdDate', Sort.asc);
@@ -559,6 +649,18 @@ extension ProjectQuerySortThenBy
   QueryBuilder<Project, Project, QAfterSortBy> thenByBudgetDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'budget', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterSortBy> thenByBudgetCents() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'budgetCents', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterSortBy> thenByBudgetCentsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'budgetCents', Sort.desc);
     });
   }
 
@@ -607,6 +709,12 @@ extension ProjectQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Project, Project, QDistinct> distinctByBudgetCents() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'budgetCents');
+    });
+  }
+
   QueryBuilder<Project, Project, QDistinct> distinctByCreatedDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdDate');
@@ -632,6 +740,12 @@ extension ProjectQueryProperty
   QueryBuilder<Project, double?, QQueryOperations> budgetProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'budget');
+    });
+  }
+
+  QueryBuilder<Project, int?, QQueryOperations> budgetCentsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'budgetCents');
     });
   }
 

@@ -1,5 +1,7 @@
 import 'package:isar/isar.dart';
 
+import '../utils/money.dart';
+
 part 'item.g.dart';
 
 @collection
@@ -8,11 +10,12 @@ class Item {
     this.id = Isar.autoIncrement,
     required this.projectId,
     required this.name,
-    required this.price,
+    required double price,
     this.isChecked = false,
     DateTime? initialCreatedAt,
     this.category,
-  }) : createdAt = initialCreatedAt ?? DateTime.now();
+  })  : priceCents = toCents(price),
+        createdAt = initialCreatedAt ?? DateTime.now();
 
   Id id;
 
@@ -20,10 +23,16 @@ class Item {
   int projectId;
 
   String name;
-  double price;
+  int priceCents;
   bool isChecked;
   DateTime createdAt;
   String? category;
+
+  double get price => fromCents(priceCents);
+
+  set price(double value) {
+    priceCents = toCents(value);
+  }
 
   static String? validateName(String? value) {
     if (value == null || value.trim().isEmpty) {
