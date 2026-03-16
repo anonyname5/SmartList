@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../models/project.dart';
 import '../providers/item_provider.dart';
 import '../providers/project_provider.dart';
+import '../providers/theme_provider.dart';
 import '../utils/calculation.dart';
 import '../utils/currency.dart';
 import '../widgets/create_project_dialog.dart';
@@ -28,6 +29,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_title),
+        actions: [
+          PopupMenuButton<ThemeMode>(
+            tooltip: 'Theme mode',
+            icon: const Icon(Icons.palette_outlined),
+            initialValue: ref.watch(themeModeProvider),
+            onSelected: (mode) => ref.read(themeModeProvider.notifier).state = mode,
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: ThemeMode.system,
+                child: Text('System'),
+              ),
+              PopupMenuItem(
+                value: ThemeMode.light,
+                child: Text('Light'),
+              ),
+              PopupMenuItem(
+                value: ThemeMode.dark,
+                child: Text('Dark'),
+              ),
+            ],
+          ),
+        ],
       ),
       body: _tabIndex == 0 ? const _ProjectsTab() : const _CalendarTab(),
       bottomNavigationBar: NavigationBar(
