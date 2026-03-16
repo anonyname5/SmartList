@@ -56,6 +56,11 @@ const ItemSchema = CollectionSchema(
       id: 7,
       name: r'projectId',
       type: IsarType.long,
+    ),
+    r'targetDate': PropertySchema(
+      id: 8,
+      name: r'targetDate',
+      type: IsarType.dateTime,
     )
   },
   estimateSize: _itemEstimateSize,
@@ -116,6 +121,7 @@ void _itemSerialize(
   writer.writeDouble(offsets[5], object.price);
   writer.writeLong(offsets[6], object.priceCents);
   writer.writeLong(offsets[7], object.projectId);
+  writer.writeDateTime(offsets[8], object.targetDate);
 }
 
 Item _itemDeserialize(
@@ -132,6 +138,7 @@ Item _itemDeserialize(
     name: reader.readString(offsets[4]),
     price: reader.readDouble(offsets[5]),
     projectId: reader.readLong(offsets[7]),
+    targetDate: reader.readDateTimeOrNull(offsets[8]),
   );
   object.createdAt = reader.readDateTime(offsets[1]);
   object.priceCents = reader.readLong(offsets[6]);
@@ -161,6 +168,8 @@ P _itemDeserializeProp<P>(
       return (reader.readLong(offset)) as P;
     case 7:
       return (reader.readLong(offset)) as P;
+    case 8:
+      return (reader.readDateTimeOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -913,6 +922,75 @@ extension ItemQueryFilter on QueryBuilder<Item, Item, QFilterCondition> {
       ));
     });
   }
+
+  QueryBuilder<Item, Item, QAfterFilterCondition> targetDateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'targetDate',
+      ));
+    });
+  }
+
+  QueryBuilder<Item, Item, QAfterFilterCondition> targetDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'targetDate',
+      ));
+    });
+  }
+
+  QueryBuilder<Item, Item, QAfterFilterCondition> targetDateEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'targetDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Item, Item, QAfterFilterCondition> targetDateGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'targetDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Item, Item, QAfterFilterCondition> targetDateLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'targetDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Item, Item, QAfterFilterCondition> targetDateBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'targetDate',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension ItemQueryObject on QueryBuilder<Item, Item, QFilterCondition> {}
@@ -1013,6 +1091,18 @@ extension ItemQuerySortBy on QueryBuilder<Item, Item, QSortBy> {
   QueryBuilder<Item, Item, QAfterSortBy> sortByProjectIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'projectId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Item, Item, QAfterSortBy> sortByTargetDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'targetDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Item, Item, QAfterSortBy> sortByTargetDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'targetDate', Sort.desc);
     });
   }
 }
@@ -1125,6 +1215,18 @@ extension ItemQuerySortThenBy on QueryBuilder<Item, Item, QSortThenBy> {
       return query.addSortBy(r'projectId', Sort.desc);
     });
   }
+
+  QueryBuilder<Item, Item, QAfterSortBy> thenByTargetDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'targetDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Item, Item, QAfterSortBy> thenByTargetDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'targetDate', Sort.desc);
+    });
+  }
 }
 
 extension ItemQueryWhereDistinct on QueryBuilder<Item, Item, QDistinct> {
@@ -1175,6 +1277,12 @@ extension ItemQueryWhereDistinct on QueryBuilder<Item, Item, QDistinct> {
   QueryBuilder<Item, Item, QDistinct> distinctByProjectId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'projectId');
+    });
+  }
+
+  QueryBuilder<Item, Item, QDistinct> distinctByTargetDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'targetDate');
     });
   }
 }
@@ -1231,6 +1339,12 @@ extension ItemQueryProperty on QueryBuilder<Item, Item, QQueryProperty> {
   QueryBuilder<Item, int, QQueryOperations> projectIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'projectId');
+    });
+  }
+
+  QueryBuilder<Item, DateTime?, QQueryOperations> targetDateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'targetDate');
     });
   }
 }

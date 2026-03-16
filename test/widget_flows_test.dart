@@ -62,6 +62,7 @@ class FakeItemActions implements ItemActions {
     required String name,
     required double price,
     String? category,
+    DateTime? targetDate,
   }) async {
     addCalls += 1;
     final item = Item(
@@ -69,6 +70,7 @@ class FakeItemActions implements ItemActions {
       name: name,
       price: price,
       category: category,
+      targetDate: targetDate,
       initialCreatedAt: DateTime.now(),
     )..id = _nextId++;
     _items.add(item);
@@ -107,13 +109,15 @@ class FakeItemActions implements ItemActions {
     required String name,
     required double price,
     String? category,
+    DateTime? targetDate,
   }) async {
     final idx = _items.indexWhere((it) => it.id == item.id);
     if (idx >= 0) {
       _items[idx]
         ..name = name
         ..price = price
-        ..category = category;
+        ..category = category
+        ..targetDate = targetDate;
       _emit();
     }
   }

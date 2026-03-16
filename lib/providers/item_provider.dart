@@ -21,6 +21,7 @@ abstract class ItemActions {
     required String name,
     required double price,
     String? category,
+    DateTime? targetDate,
   });
 
   Future<void> toggleChecked(Item item);
@@ -32,6 +33,7 @@ abstract class ItemActions {
     required String name,
     required double price,
     String? category,
+    DateTime? targetDate,
   });
 
   Future<void> delete(int itemId);
@@ -48,10 +50,17 @@ class ItemActionsImpl implements ItemActions {
     required String name,
     required double price,
     String? category,
+    DateTime? targetDate,
   }) async {
     final isar = await _ref.read(databaseProvider.future);
     final repository = ItemRepository(isar);
-    await repository.add(projectId: projectId, name: name, price: price, category: category);
+    await repository.add(
+      projectId: projectId,
+      name: name,
+      price: price,
+      category: category,
+      targetDate: targetDate,
+    );
   }
 
   @override
@@ -74,10 +83,17 @@ class ItemActionsImpl implements ItemActions {
     required String name,
     required double price,
     String? category,
+    DateTime? targetDate,
   }) async {
     final isar = await _ref.read(databaseProvider.future);
     final repository = ItemRepository(isar);
-    await repository.update(item: item, name: name, price: price, category: category);
+    await repository.update(
+      item: item,
+      name: name,
+      price: price,
+      category: category,
+      targetDate: targetDate,
+    );
   }
 
   @override

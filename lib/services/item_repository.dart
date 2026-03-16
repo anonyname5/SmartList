@@ -16,12 +16,14 @@ class ItemRepository {
     required String name,
     required double price,
     String? category,
+    DateTime? targetDate,
   }) async {
     final item = Item(
       projectId: projectId,
       name: name.trim(),
       price: price,
       category: category?.trim().isEmpty == true ? null : category?.trim(),
+      targetDate: targetDate,
     );
 
     await _isar.writeTxn(() async {
@@ -48,11 +50,13 @@ class ItemRepository {
     required String name,
     required double price,
     String? category,
+    DateTime? targetDate,
   }) async {
     await _isar.writeTxn(() async {
       item.name = name.trim();
       item.price = price;
       item.category = category?.trim().isEmpty == true ? null : category?.trim();
+      item.targetDate = targetDate;
       await _isar.items.put(item);
     });
   }

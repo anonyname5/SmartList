@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:intl/intl.dart';
 
 import '../models/item.dart';
 import '../models/project.dart';
@@ -288,7 +289,7 @@ class _ItemTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     Future<void> showItemActions() async {
-      final shouldToggleExclude = await showModalBottomSheet<bool>(
+      final action = await showModalBottomSheet<String>(
         context: context,
         builder: (sheetContext) => SafeArea(
           child: Column(
@@ -302,25 +303,55 @@ class _ItemTile extends ConsumerWidget {
                       ? 'Include this item back into totals'
                       : 'Exclude this item from totals',
                 ),
-                onTap: () => Navigator.of(sheetContext).pop(true),
+                onTap: () => Navigator.of(sheetContext).pop('toggle-exclude'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text('Delete item'),
+                subtitle: const Text('Permanently remove this item'),
+                onTap: () => Navigator.of(sheetContext).pop('delete'),
               ),
               ListTile(
                 leading: const Icon(Icons.close),
                 title: const Text('Cancel'),
-                onTap: () => Navigator.of(sheetContext).pop(false),
+                onTap: () => Navigator.of(sheetContext).pop('cancel'),
               ),
             ],
           ),
         ),
       );
 
-      if (shouldToggleExclude == true) {
+      if (!context.mounted) return;
+
+      if (action == 'toggle-exclude') {
         await ref.read(itemActionsProvider).toggleExcluded(item);
+      } else if (action == 'delete') {
+        final shouldDelete = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Delete item?'),
+            content: Text('Delete "${item.name}" permanently?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        );
+        if (shouldDelete == true) {
+          await ref.read(itemActionsProvider).delete(item.id);
+        }
       }
     }
 
     final subtitleParts = <String>[
       if (item.category != null && item.category!.isNotEmpty) item.category!,
+      if (item.targetDate != null) 'Target: ${DateFormat.yMMMd().format(item.targetDate!)}',
       if (item.isExcluded) 'Excluded',
     ];
 

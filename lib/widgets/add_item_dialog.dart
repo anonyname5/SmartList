@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../models/item.dart';
 import '../providers/item_provider.dart';
@@ -23,6 +24,7 @@ class _AddItemDialogState extends ConsumerState<AddItemDialog> {
   late final TextEditingController _nameController;
   late final TextEditingController _priceController;
   late final TextEditingController _categoryController;
+  DateTime? _targetDate;
   bool _saving = false;
 
   @override
@@ -33,6 +35,7 @@ class _AddItemDialogState extends ConsumerState<AddItemDialog> {
       text: widget.item?.price.toStringAsFixed(2) ?? '',
     );
     _categoryController = TextEditingController(text: widget.item?.category ?? '');
+    _targetDate = widget.item?.targetDate;
   }
 
   @override
@@ -54,6 +57,7 @@ class _AddItemDialogState extends ConsumerState<AddItemDialog> {
             name: _nameController.text,
             price: double.parse(_priceController.text.trim()),
             category: _categoryController.text,
+            targetDate: _targetDate,
           );
     } else {
       await ref.read(itemActionsProvider).update(
@@ -61,11 +65,26 @@ class _AddItemDialogState extends ConsumerState<AddItemDialog> {
             name: _nameController.text,
             price: double.parse(_priceController.text.trim()),
             category: _categoryController.text,
+            targetDate: _targetDate,
           );
     }
 
     if (!mounted) return;
     Navigator.of(context).pop();
+  }
+
+  Future<void> _pickTargetDate() async {
+    final now = DateTime.now();
+    final initial = _targetDate ?? now;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(now.year - 1),
+      lastDate: DateTime(now.year + 10),
+    );
+    if (picked != null) {
+      setState(() => _targetDate = picked);
+    }
   }
 
   @override
@@ -93,6 +112,28 @@ class _AddItemDialogState extends ConsumerState<AddItemDialog> {
             TextFormField(
               controller: _categoryController,
               decoration: const InputDecoration(labelText: 'Category (Optional)'),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _targetDate == null
+                        ? 'Target Date: Not set'
+                        : 'Target Date: ${DateFormat.yMMMd().format(_targetDate!)}',
+                  ),
+                ),
+                TextButton(
+                  onPressed: _saving ? null : _pickTargetDate,
+                  child: const Text('Pick Date'),
+                ),
+                if (_targetDate != null)
+                  IconButton(
+                    onPressed: _saving ? null : () => setState(() => _targetDate = null),
+                    icon: const Icon(Icons.clear),
+                    tooltip: 'Clear date',
+                  ),
+              ],
             ),
           ],
         ),
