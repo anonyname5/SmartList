@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/project.dart';
@@ -38,7 +39,10 @@ class HomeScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             itemCount: projects.length,
             separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (context, index) => _ProjectCard(project: projects[index]),
+            itemBuilder: (context, index) => _ProjectCard(
+              project: projects[index],
+              index: index,
+            ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -62,9 +66,13 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _ProjectCard extends ConsumerWidget {
-  const _ProjectCard({required this.project});
+  const _ProjectCard({
+    required this.project,
+    required this.index,
+  });
 
   final Project project;
+  final int index;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -144,6 +152,9 @@ class _ProjectCard extends ConsumerWidget {
           ),
         ),
       ),
-    );
+    )
+        .animate(delay: Duration(milliseconds: 45 * index))
+        .fadeIn(duration: 260.ms)
+        .slideY(begin: 0.08, end: 0, duration: 260.ms, curve: Curves.easeOutCubic);
   }
 }

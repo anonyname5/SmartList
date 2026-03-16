@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
@@ -105,7 +106,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   ],
                 ),
               ),
-            ),
+            ).animate().fadeIn(duration: 260.ms).slideY(begin: -0.05, end: 0, duration: 260.ms),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -139,7 +140,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 ),
               ],
             ),
-          ),
+          ).animate().fadeIn(delay: 80.ms, duration: 240.ms),
           const SizedBox(height: 8),
           Expanded(
             child: itemsAsync.when(
@@ -219,7 +220,10 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         itemCount: visibleItems.length,
                         separatorBuilder: (context, index) => const SizedBox(height: 8),
-                        itemBuilder: (context, index) => _ItemTile(item: visibleItems[index]),
+                        itemBuilder: (context, index) => _ItemTile(
+                          item: visibleItems[index],
+                          index: index,
+                        ),
                       ),
                     ),
                   ],
@@ -272,9 +276,13 @@ class _SummaryRow extends StatelessWidget {
 }
 
 class _ItemTile extends ConsumerWidget {
-  const _ItemTile({required this.item});
+  const _ItemTile({
+    required this.item,
+    required this.index,
+  });
 
   final Item item;
+  final int index;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -323,6 +331,9 @@ class _ItemTile extends ConsumerWidget {
           ),
         ),
       ),
-    );
+    )
+        .animate(delay: Duration(milliseconds: 35 * index))
+        .fadeIn(duration: 220.ms)
+        .slideX(begin: 0.04, end: 0, duration: 220.ms, curve: Curves.easeOutCubic);
   }
 }

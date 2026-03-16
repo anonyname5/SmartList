@@ -9,7 +9,12 @@ Status: Milestones 0-5 mostly implemented, QA in progress
 ## Milestone 0 - Project Setup
 
 - [x] Create Flutter project (Android target)
-- [ ] Configure app name, package ID, min SDK, versioning
+- [ ] Configure app name, app icon, package ID, min SDK, versioning
+  - [ ] App name
+  - [x] App icon (`tool.png`)
+  - [ ] Package ID
+  - [ ] Min SDK
+  - [ ] Versioning
 - [x] Set up folder structure:
   - [x] `lib/models`
   - [x] `lib/screens`
@@ -135,8 +140,8 @@ Status: Milestones 0-5 mostly implemented, QA in progress
 - [x] Empty state for no items
 - [x] Inline validation messages for form errors
 - [x] Delete confirmation dialog
-- [ ] Add light animations (`flutter_animate`)
-- [ ] Keep visual consistency with `shad_ui_flutter`
+- [x] Add light animations (`flutter_animate`)
+- [x] Keep visual consistency with `shad_ui_flutter`
 
 ## Milestone 7 - Testing
 
@@ -187,6 +192,6 @@ Status: Milestones 0-5 mostly implemented, QA in progress
 - [x] M3: Riverpod state completed
 - [x] M4: Core screens completed
 - [x] M5: Logic + budget warning completed (decimal precision hardening done)
-- [ ] M6: Polish completed
+- [x] M6: Polish completed
 - [ ] M7: Tests completed
 - [ ] MVP ready for first release

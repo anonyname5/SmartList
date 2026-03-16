@@ -24,7 +24,6 @@ class SmartListApp extends StatelessWidget {
           cardTheme: CardThemeData(
             elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            side: BorderSide(color: Colors.teal.shade100),
           ),
           filledButtonTheme: FilledButtonThemeData(
             style: FilledButton.styleFrom(
