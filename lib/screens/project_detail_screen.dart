@@ -296,6 +296,12 @@ class _ItemTile extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text('Edit item'),
+                subtitle: const Text('Update item name, price, category or target date'),
+                onTap: () => Navigator.of(sheetContext).pop('edit'),
+              ),
+              ListTile(
                 leading: Icon(item.isExcluded ? Icons.undo : Icons.remove_circle_outline),
                 title: Text(item.isExcluded ? 'Include item' : 'Exclude item'),
                 subtitle: Text(
@@ -323,7 +329,12 @@ class _ItemTile extends ConsumerWidget {
 
       if (!context.mounted) return;
 
-      if (action == 'toggle-exclude') {
+      if (action == 'edit') {
+        await showDialog<void>(
+          context: context,
+          builder: (_) => AddItemDialog(projectId: item.projectId, item: item),
+        );
+      } else if (action == 'toggle-exclude') {
         await ref.read(itemActionsProvider).toggleExcluded(item);
       } else if (action == 'delete') {
         final shouldDelete = await showDialog<bool>(

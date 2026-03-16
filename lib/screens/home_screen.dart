@@ -191,6 +191,23 @@ class _CalendarTabState extends ConsumerState<_CalendarTab> {
     return scheme.tertiary; // future/default
   }
 
+  _CalendarBucket _bucketForDate(DateTime date, DateTime today) {
+    if (_isBeforeToday(date, today)) return _CalendarBucket.overdue;
+    if (_isSameDay(date, today)) return _CalendarBucket.today;
+    return _CalendarBucket.upcoming;
+  }
+
+  String _bucketTitle(_CalendarBucket bucket) {
+    switch (bucket) {
+      case _CalendarBucket.overdue:
+        return 'Overdue';
+      case _CalendarBucket.today:
+        return 'Today';
+      case _CalendarBucket.upcoming:
+        return 'Upcoming';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final projectsAsync = ref.watch(projectsProvider);
@@ -202,6 +219,17 @@ class _CalendarTabState extends ConsumerState<_CalendarTab> {
           final dateItems = _itemsForDay(items, _selectedDate)
             ..sort((a, b) => a.targetDate!.compareTo(b.targetDate!));
           final projectMap = {for (final project in projects) project.id: project.title};
+          final now = DateTime.now();
+          final grouped = {
+            _CalendarBucket.overdue: <Item>[],
+            _CalendarBucket.today: <Item>[],
+            _CalendarBucket.upcoming: <Item>[],
+          };
+          for (final item in dateItems) {
+            final target = item.targetDate;
+            if (target == null) continue;
+            grouped[_bucketForDate(target, now)]!.add(item);
+          }
 
           return Column(
             children: [
@@ -299,26 +327,40 @@ class _CalendarTabState extends ConsumerState<_CalendarTab> {
                           ),
                         ),
                       )
-                    : ListView.separated(
+                    : ListView(
                         padding: const EdgeInsets.all(16),
-                        itemCount: dateItems.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: 10),
-                        itemBuilder: (context, index) {
-                          final item = dateItems[index];
-                          final projectTitle = projectMap[item.projectId] ?? 'Unknown Project';
-                          return Card(
-                            child: ListTile(
-                              title: Text(item.name),
-                              subtitle: Text(
-                                '$projectTitle${item.isExcluded ? ' • Excluded' : ''}',
+                        children: [
+                          for (final bucket in [
+                            _CalendarBucket.overdue,
+                            _CalendarBucket.today,
+                            _CalendarBucket.upcoming,
+                          ]) ...[
+                            if (grouped[bucket]!.isNotEmpty) ...[
+                              Text(
+                                _bucketTitle(bucket),
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
                               ),
-                              trailing: Text(
-                                formatCurrency(item.price),
-                                style: const TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          );
-                        },
+                              const SizedBox(height: 8),
+                              for (final item in grouped[bucket]!) ...[
+                                Card(
+                                  child: ListTile(
+                                    title: Text(item.name),
+                                    subtitle: Text(
+                                      '${projectMap[item.projectId] ?? 'Unknown Project'}${item.isExcluded ? ' • Excluded' : ''}',
+                                    ),
+                                    trailing: Text(
+                                      formatCurrency(item.price),
+                                      style: const TextStyle(fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                              ],
+                            ],
+                          ],
+                        ],
                       ),
               ),
             ],
@@ -464,4 +506,10 @@ class _LegendDot extends StatelessWidget {
       ],
     );
   }
+}
+
+enum _CalendarBucket {
+  overdue,
+  today,
+  upcoming,
 }
