@@ -169,8 +169,8 @@ Status: Milestones 0-5 mostly implemented, QA in progress
 ## Post-MVP Backlog (Phase 2+)
 
 - [ ] Categories UI + filtering
-- [ ] Search items in project
-- [ ] Sorting (price/purchased/name/newest)
+- [x] Search items in project
+- [x] Sorting (price/purchased/name/newest)
 - [ ] Progress bar (`x / y`)
 - [ ] Multi-currency support
 - [ ] Cloud sync

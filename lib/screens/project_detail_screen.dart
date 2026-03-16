@@ -6,9 +6,10 @@ import '../models/item.dart';
 import '../models/project.dart';
 import '../providers/item_provider.dart';
 import '../utils/currency.dart';
+import '../utils/item_filter_sort.dart';
 import '../widgets/add_item_dialog.dart';
 
-class ProjectDetailScreen extends ConsumerWidget {
+class ProjectDetailScreen extends ConsumerStatefulWidget {
   const ProjectDetailScreen({
     required this.project,
     super.key,
@@ -17,7 +18,39 @@ class ProjectDetailScreen extends ConsumerWidget {
   final Project project;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
+}
+
+class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  ItemSortOption _sortOption = ItemSortOption.newest;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  String _sortLabel(ItemSortOption option) {
+    switch (option) {
+      case ItemSortOption.newest:
+        return 'Newest';
+      case ItemSortOption.name:
+        return 'Name';
+      case ItemSortOption.priceLowToHigh:
+        return 'Price: Low to High';
+      case ItemSortOption.priceHighToLow:
+        return 'Price: High to Low';
+      case ItemSortOption.purchasedFirst:
+        return 'Purchased First';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ref = this.ref;
+    final project = widget.project;
     final itemsAsync = ref.watch(projectItemsProvider(project.id));
     final planned = ref.watch(totalPlannedProvider(project.id));
     final bought = ref.watch(totalBoughtProvider(project.id));
@@ -63,9 +96,49 @@ class ProjectDetailScreen extends ConsumerWidget {
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                    decoration: const InputDecoration(
+                      labelText: 'Search items',
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                DropdownButton<ItemSortOption>(
+                  value: _sortOption,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() => _sortOption = value);
+                  },
+                  items: ItemSortOption.values
+                      .map(
+                        (option) => DropdownMenuItem<ItemSortOption>(
+                          value: option,
+                          child: Text(_sortLabel(option)),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
           Expanded(
             child: itemsAsync.when(
               data: (items) {
+                final visibleItems = applyItemSearchAndSort(
+                  items: items,
+                  query: _searchQuery,
+                  sortOption: _sortOption,
+                );
+
                 if (items.isEmpty) {
                   return const Center(
                     child: Padding(
@@ -78,11 +151,23 @@ class ProjectDetailScreen extends ConsumerWidget {
                   );
                 }
 
+                if (visibleItems.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text(
+                        'No items match your search.',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                }
+
                 return ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: items.length,
+                  itemCount: visibleItems.length,
                   separatorBuilder: (context, index) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) => _ItemTile(item: items[index]),
+                  itemBuilder: (context, index) => _ItemTile(item: visibleItems[index]),
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -99,7 +184,7 @@ class ProjectDetailScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => showDialog<void>(
           context: context,
-          builder: (_) => AddItemDialog(projectId: project.id),
+          builder: (_) => AddItemDialog(projectId: widget.project.id),
         ),
         label: const Text('Add Item'),
         icon: const Icon(Icons.add),
