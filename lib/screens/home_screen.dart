@@ -3,10 +3,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../models/item.dart';
 import '../models/project.dart';
 import '../providers/item_provider.dart';
 import '../providers/project_provider.dart';
 import '../providers/theme_provider.dart';
+import '../services/home_widget_service.dart';
 import '../utils/calculation.dart';
 import '../utils/currency.dart';
 import '../widgets/create_project_dialog.dart';
@@ -21,8 +23,27 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _tabIndex = 0;
+  late final ProviderSubscription<AsyncValue<List<Item>>> _widgetSyncSubscription;
 
   String get _title => _tabIndex == 0 ? 'SmartList' : 'Calendar';
+
+  @override
+  void initState() {
+    super.initState();
+    _widgetSyncSubscription = ref.listenManual<AsyncValue<List<Item>>>(
+      allItemsProvider,
+      (previous, next) {
+        next.whenData(HomeWidgetService.updateFromItems);
+      },
+      fireImmediately: true,
+    );
+  }
+
+  @override
+  void dispose() {
+    _widgetSyncSubscription.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
