@@ -9,7 +9,7 @@ Status: Milestones 0-5 mostly implemented, QA in progress
 ## Milestone 0 - Project Setup
 
 - [x] Create Flutter project (Android target)
-- [ ] Configure app name, app icon, package ID, min SDK, versioning
+- [x] Configure app name, app icon, package ID, min SDK, versioning
   - [x] App name
   - [x] App icon (`tool.png`)
   - [x] Package ID
