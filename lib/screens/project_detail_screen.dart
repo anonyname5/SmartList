@@ -1,0 +1,178 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+
+import '../models/item.dart';
+import '../models/project.dart';
+import '../providers/item_provider.dart';
+import '../utils/currency.dart';
+import '../widgets/add_item_dialog.dart';
+
+class ProjectDetailScreen extends ConsumerWidget {
+  const ProjectDetailScreen({
+    required this.project,
+    super.key,
+  });
+
+  final Project project;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final itemsAsync = ref.watch(projectItemsProvider(project.id));
+    final planned = ref.watch(totalPlannedProvider(project.id));
+    final bought = ref.watch(totalBoughtProvider(project.id));
+    final remaining = ref.watch(remainingProvider(project.id));
+    final budgetExceeded = project.budget != null && planned > project.budget!;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(project.title)),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Card(
+              color: budgetExceeded ? Colors.red.shade50 : null,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _SummaryRow(label: 'Total Planned', value: formatCurrency(planned)),
+                    _SummaryRow(label: 'Total Bought', value: formatCurrency(bought)),
+                    _SummaryRow(label: 'Remaining', value: formatCurrency(remaining)),
+                    if (project.budget != null) ...[
+                      const Divider(height: 24),
+                      _SummaryRow(
+                        label: 'Budget',
+                        value: formatCurrency(project.budget!),
+                      ),
+                      _SummaryRow(
+                        label: 'Remaining Budget',
+                        value: formatCurrency(project.budget! - planned),
+                      ),
+                      if (budgetExceeded)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Text(
+                            'Warning: Total exceeds budget',
+                            style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: itemsAsync.when(
+              data: (items) {
+                if (items.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text(
+                        'No items yet.\nTap "Add Item" to create your checklist.',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  itemCount: items.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) => _ItemTile(item: items[index]),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text('Failed to load items: $error'),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => showDialog<void>(
+          context: context,
+          builder: (_) => AddItemDialog(projectId: project.id),
+        ),
+        label: const Text('Add Item'),
+        icon: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Expanded(child: Text(label)),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ItemTile extends ConsumerWidget {
+  const _ItemTile({required this.item});
+
+  final Item item;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Slidable(
+      key: ValueKey(item.id),
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (_) async {
+              await ref.read(itemActionsProvider).delete(item.id);
+            },
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            icon: Icons.delete,
+            label: 'Delete',
+          ),
+        ],
+      ),
+      child: Card(
+        child: CheckboxListTile(
+          value: item.isChecked,
+          onChanged: (_) async {
+            await ref.read(itemActionsProvider).toggleChecked(item);
+          },
+          title: Text(
+            item.name,
+            style: TextStyle(
+              decoration: item.isChecked ? TextDecoration.lineThrough : null,
+            ),
+          ),
+          subtitle: item.category == null || item.category!.isEmpty ? null : Text(item.category!),
+          secondary: Text(
+            formatCurrency(item.price),
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ),
+    );
+  }
+}

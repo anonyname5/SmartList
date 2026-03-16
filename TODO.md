@@ -2,146 +2,146 @@
 
 Project: Smart Checklist with Auto Total  
 Platform: Android (Flutter)  
-Status: Planning complete, implementation pending
+Status: Milestones 0-5 mostly implemented, QA in progress
 
 ---
 
 ## Milestone 0 - Project Setup
 
-- [ ] Create Flutter project (Android target)
+- [x] Create Flutter project (Android target)
 - [ ] Configure app name, package ID, min SDK, versioning
-- [ ] Set up folder structure:
-  - [ ] `lib/models`
-  - [ ] `lib/screens`
-  - [ ] `lib/services`
-  - [ ] `lib/providers`
-  - [ ] `lib/widgets`
-- [ ] Add dependencies:
-  - [ ] `flutter_riverpod`
-  - [ ] `isar`
-  - [ ] `isar_flutter_libs`
-  - [ ] `path_provider`
-  - [ ] `intl`
-  - [ ] `shad_ui_flutter`
-  - [ ] `lucide_icons_flutter`
-  - [ ] `flutter_animate`
-  - [ ] `flutter_slidable`
-  - [ ] `shimmer`
-- [ ] Configure Isar code generation (`build_runner`)
+- [x] Set up folder structure:
+  - [x] `lib/models`
+  - [x] `lib/screens`
+  - [x] `lib/services`
+  - [x] `lib/providers`
+  - [x] `lib/widgets`
+- [x] Add dependencies:
+  - [x] `flutter_riverpod`
+  - [x] `isar`
+  - [x] `isar_flutter_libs`
+  - [x] `path_provider`
+  - [x] `intl`
+  - [x] `shad_ui_flutter`
+  - [x] `lucide_icons_flutter`
+  - [x] `flutter_animate`
+  - [x] `flutter_slidable`
+  - [x] `shimmer`
+- [x] Configure Isar code generation (`build_runner`)
 - [ ] Verify app runs on Android emulator/device
 
 ## Milestone 1 - Domain Models
 
-- [ ] Implement `Project` model:
-  - [ ] `id`
-  - [ ] `title`
-  - [ ] `budget` (optional)
-  - [ ] `createdDate`
-- [ ] Implement `Item` model:
-  - [ ] `id`
-  - [ ] `projectId`
-  - [ ] `name`
-  - [ ] `price`
-  - [ ] `isChecked`
-  - [ ] `createdAt`
-  - [ ] `category` (optional, future-ready)
-- [ ] Add validation rules:
-  - [ ] Non-empty project title
-  - [ ] Non-empty item name
-  - [ ] Non-negative price
-- [ ] Add constants/utilities:
-  - [ ] Default currency `RM`
-  - [ ] Currency formatting helper
+- [x] Implement `Project` model:
+  - [x] `id`
+  - [x] `title`
+  - [x] `budget` (optional)
+  - [x] `createdDate`
+- [x] Implement `Item` model:
+  - [x] `id`
+  - [x] `projectId`
+  - [x] `name`
+  - [x] `price`
+  - [x] `isChecked`
+  - [x] `createdAt`
+  - [x] `category` (optional, future-ready)
+- [x] Add validation rules:
+  - [x] Non-empty project title
+  - [x] Non-empty item name
+  - [x] Non-negative price
+- [x] Add constants/utilities:
+  - [x] Default currency `RM`
+  - [x] Currency formatting helper
 
 ## Milestone 2 - Local Storage (Isar)
 
-- [ ] Create `DatabaseService`:
-  - [ ] Open Isar instance
-  - [ ] Register schemas
-  - [ ] Close/cleanup safely
-- [ ] Create `ProjectRepository`:
-  - [ ] Create project
-  - [ ] Read all projects
+- [x] Create `DatabaseService`:
+  - [x] Open Isar instance
+  - [x] Register schemas
+  - [x] Close/cleanup safely
+- [x] Create `ProjectRepository`:
+  - [x] Create project
+  - [x] Read all projects
   - [ ] Update project
-  - [ ] Delete project
-- [ ] Create `ItemRepository`:
-  - [ ] Add item
-  - [ ] Read items by `projectId`
-  - [ ] Update item
-  - [ ] Delete item
-- [ ] Ensure write operations are transactional
+  - [x] Delete project
+- [x] Create `ItemRepository`:
+  - [x] Add item
+  - [x] Read items by `projectId`
+  - [x] Update item
+  - [x] Delete item
+- [x] Ensure write operations are transactional
 - [ ] (Optional) Add dev seed data helper
 
 ## Milestone 3 - State Management (Riverpod)
 
-- [ ] Add DB initialization provider
-- [ ] Add project list provider:
-  - [ ] Load projects
-  - [ ] Create project
-  - [ ] Delete project
-- [ ] Add item list provider (by project):
-  - [ ] Load items
-  - [ ] Add item
-  - [ ] Toggle `isChecked`
-  - [ ] Delete item
-- [ ] Add derived totals providers:
-  - [ ] `totalPlanned`
-  - [ ] `totalBought`
-  - [ ] `remaining`
+- [x] Add DB initialization provider
+- [x] Add project list provider:
+  - [x] Load projects
+  - [x] Create project
+  - [x] Delete project
+- [x] Add item list provider (by project):
+  - [x] Load items
+  - [x] Add item
+  - [x] Toggle `isChecked`
+  - [x] Delete item
+- [x] Add derived totals providers:
+  - [x] `totalPlanned`
+  - [x] `totalBought`
+  - [x] `remaining`
 - [ ] Add loading/error/empty states in providers
 
 ## Milestone 4 - Core Screens
 
-- [ ] Build `HomeScreen`:
-  - [ ] Display all projects
-  - [ ] Show project total + item count
-  - [ ] Add "Create Project" CTA
-- [ ] Build "Create Project" flow:
-  - [ ] Title input (required)
-  - [ ] Budget input (optional)
-  - [ ] Save action + validation
-- [ ] Build `ProjectDetailScreen`:
-  - [ ] Show project title and optional budget
-  - [ ] Show item checklist
-  - [ ] Show totals panel (planned/bought/remaining)
-  - [ ] Add "Add Item" CTA
-- [ ] Build "Add Item" flow:
-  - [ ] Item name (required)
-  - [ ] Price (required)
-  - [ ] Category (optional)
-  - [ ] Save action + validation
-- [ ] Implement item interactions:
-  - [ ] Checkbox toggle
-  - [ ] Delete item (basic)
-  - [ ] Swipe-to-delete (optional if time allows)
+- [x] Build `HomeScreen`:
+  - [x] Display all projects
+  - [x] Show project total + item count
+  - [x] Add "Create Project" CTA
+- [x] Build "Create Project" flow:
+  - [x] Title input (required)
+  - [x] Budget input (optional)
+  - [x] Save action + validation
+- [x] Build `ProjectDetailScreen`:
+  - [x] Show project title and optional budget
+  - [x] Show item checklist
+  - [x] Show totals panel (planned/bought/remaining)
+  - [x] Add "Add Item" CTA
+- [x] Build "Add Item" flow:
+  - [x] Item name (required)
+  - [x] Price (required)
+  - [x] Category (optional)
+  - [x] Save action + validation
+- [x] Implement item interactions:
+  - [x] Checkbox toggle
+  - [x] Delete item (basic)
+  - [x] Swipe-to-delete (optional if time allows)
 
 ## Milestone 5 - Business Logic
 
-- [ ] Implement calculation utility:
-  - [ ] `totalPlanned(items)`
-  - [ ] `totalBought(items)`
-  - [ ] `remaining(items)`
-- [ ] Ensure totals update instantly after:
-  - [ ] Add item
-  - [ ] Toggle item
-  - [ ] Delete item
-- [ ] Implement budget warning indicator if exceeded
-- [ ] Standardize money formatting in all screens
+- [x] Implement calculation utility:
+  - [x] `totalPlanned(items)`
+  - [x] `totalBought(items)`
+  - [x] `remaining(items)`
+- [x] Ensure totals update instantly after:
+  - [x] Add item
+  - [x] Toggle item
+  - [x] Delete item
+- [x] Implement budget warning indicator if exceeded
+- [x] Standardize money formatting in all screens
 - [ ] Handle decimal precision safely
 
 ## Milestone 6 - UX Polish (MVP-safe)
 
-- [ ] Empty state for no projects
-- [ ] Empty state for no items
-- [ ] Inline validation messages for form errors
-- [ ] Delete confirmation dialog
+- [x] Empty state for no projects
+- [x] Empty state for no items
+- [x] Inline validation messages for form errors
+- [x] Delete confirmation dialog
 - [ ] Add light animations (`flutter_animate`)
 - [ ] Keep visual consistency with `shad_ui_flutter`
 
 ## Milestone 7 - Testing
 
 - [ ] Unit tests:
-  - [ ] Calculation functions
+  - [x] Calculation functions
   - [ ] Validation rules
 - [ ] Repository tests:
   - [ ] Project CRUD
@@ -181,12 +181,12 @@ Status: Planning complete, implementation pending
 
 ## Current Sprint (Suggested)
 
-- [ ] M0: Setup completed
-- [ ] M1: Models completed
-- [ ] M2: Isar storage completed
-- [ ] M3: Riverpod state completed
-- [ ] M4: Core screens completed
-- [ ] M5: Logic + budget warning completed
+- [ ] M0: Setup completed (pending emulator/device run check)
+- [x] M1: Models completed
+- [ ] M2: Isar storage completed (project update flow pending)
+- [x] M3: Riverpod state completed
+- [x] M4: Core screens completed
+- [ ] M5: Logic + budget warning completed (decimal precision hardening pending)
 - [ ] M6: Polish completed
 - [ ] M7: Tests completed
 - [ ] MVP ready for first release
