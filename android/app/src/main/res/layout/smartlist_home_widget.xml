@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="8dp"
+    android:background="@drawable/smartlist_widget_background"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/widget_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SmartList"
+        android:textColor="#1F3A5F"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Today Targets"
+        android:textColor="#5A6C81"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/widget_today_targets_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textColor="#1F3A5F"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/widget_planned_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Planned: RM0.00"
+            android:textColor="#1D2733"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/widget_bought_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bought: RM0.00"
+            android:textColor="#1D2733"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/widget_remaining_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Remaining: RM0.00"
+            android:textColor="#1D2733"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</LinearLayout>
