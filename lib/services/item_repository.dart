@@ -36,6 +36,13 @@ class ItemRepository {
     });
   }
 
+  Future<void> toggleExcluded(Item item) async {
+    await _isar.writeTxn(() async {
+      item.isExcluded = !item.isExcluded;
+      await _isar.items.put(item);
+    });
+  }
+
   Future<void> update({
     required Item item,
     required String name,

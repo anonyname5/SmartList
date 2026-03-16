@@ -267,6 +267,7 @@ class _SummaryRow extends StatelessWidget {
           Expanded(child: Text(label)),
           Text(
             value,
+            key: ValueKey('summary-${label.toLowerCase().replaceAll(' ', '-')}'),
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ],
@@ -286,6 +287,43 @@ class _ItemTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Future<void> showItemActions() async {
+      final shouldToggleExclude = await showModalBottomSheet<bool>(
+        context: context,
+        builder: (sheetContext) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(item.isExcluded ? Icons.undo : Icons.remove_circle_outline),
+                title: Text(item.isExcluded ? 'Include item' : 'Exclude item'),
+                subtitle: Text(
+                  item.isExcluded
+                      ? 'Include this item back into totals'
+                      : 'Exclude this item from totals',
+                ),
+                onTap: () => Navigator.of(sheetContext).pop(true),
+              ),
+              ListTile(
+                leading: const Icon(Icons.close),
+                title: const Text('Cancel'),
+                onTap: () => Navigator.of(sheetContext).pop(false),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      if (shouldToggleExclude == true) {
+        await ref.read(itemActionsProvider).toggleExcluded(item);
+      }
+    }
+
+    final subtitleParts = <String>[
+      if (item.category != null && item.category!.isNotEmpty) item.category!,
+      if (item.isExcluded) 'Excluded',
+    ];
+
     return Slidable(
       key: ValueKey(item.id),
       endActionPane: ActionPane(
@@ -312,22 +350,30 @@ class _ItemTile extends ConsumerWidget {
           ),
         ],
       ),
-      child: Card(
-        child: CheckboxListTile(
-          value: item.isChecked,
-          onChanged: (_) async {
-            await ref.read(itemActionsProvider).toggleChecked(item);
-          },
-          title: Text(
-            item.name,
-            style: TextStyle(
-              decoration: item.isChecked ? TextDecoration.lineThrough : null,
+      child: GestureDetector(
+        onLongPress: showItemActions,
+        child: Opacity(
+          opacity: item.isExcluded ? 0.55 : 1,
+          child: Card(
+            child: CheckboxListTile(
+              value: item.isChecked,
+              onChanged: item.isExcluded
+                  ? null
+                  : (_) async {
+                      await ref.read(itemActionsProvider).toggleChecked(item);
+                    },
+              title: Text(
+                item.name,
+                style: TextStyle(
+                  decoration: item.isChecked ? TextDecoration.lineThrough : null,
+                ),
+              ),
+              subtitle: subtitleParts.isEmpty ? null : Text(subtitleParts.join(' • ')),
+              secondary: Text(
+                formatCurrency(item.price),
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
             ),
-          ),
-          subtitle: item.category == null || item.category!.isEmpty ? null : Text(item.category!),
-          secondary: Text(
-            formatCurrency(item.price),
-            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
       ),

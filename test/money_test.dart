@@ -34,4 +34,16 @@ void main() {
     expect(totalBought(items), 45);
     expect(remaining(items), 200.16);
   });
+
+  test('Excluded items are ignored in totals', () {
+    final items = [
+      Item(projectId: 1, name: 'Paint', price: 120),
+      Item(projectId: 1, name: 'Curtain', price: 80, isExcluded: true),
+      Item(projectId: 1, name: 'Lamp', price: 45, isChecked: true),
+    ];
+
+    expect(totalPlanned(items), 165);
+    expect(totalBought(items), 45);
+    expect(remaining(items), 120);
+  });
 }

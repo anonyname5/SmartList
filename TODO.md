@@ -152,9 +152,9 @@ Status: Milestones 0-5 mostly implemented, QA in progress
   - [ ] Project CRUD
   - [ ] Item CRUD
 - [ ] Widget tests:
-  - [ ] Create project flow
-  - [ ] Add item flow
-  - [ ] Toggle updates totals
+  - [x] Create project flow
+  - [x] Add item flow
+  - [x] Toggle updates totals
 - [ ] Manual QA checklist:
   - [ ] Data persists after app restart
   - [ ] No crash in core user flow

@@ -12,6 +12,7 @@ class Item {
     required this.name,
     required double price,
     this.isChecked = false,
+    this.isExcluded = false,
     DateTime? initialCreatedAt,
     this.category,
   })  : priceCents = toCents(price),
@@ -25,6 +26,7 @@ class Item {
   String name;
   int priceCents;
   bool isChecked;
+  bool isExcluded;
   DateTime createdAt;
   String? category;
 
