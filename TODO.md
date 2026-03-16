@@ -10,11 +10,11 @@ Status: Milestones 0-5 mostly implemented, QA in progress
 
 - [x] Create Flutter project (Android target)
 - [ ] Configure app name, app icon, package ID, min SDK, versioning
-  - [ ] App name
+  - [x] App name
   - [x] App icon (`tool.png`)
-  - [ ] Package ID
-  - [ ] Min SDK
-  - [ ] Versioning
+  - [x] Package ID
+  - [x] Min SDK
+  - [x] Versioning
 - [x] Set up folder structure:
   - [x] `lib/models`
   - [x] `lib/screens`
@@ -186,7 +186,7 @@ Status: Milestones 0-5 mostly implemented, QA in progress
 
 ## Current Sprint (Suggested)
 
-- [ ] M0: Setup completed (pending emulator/device run check)
+- [x] M0: Setup completed (pending emulator/device run check)
 - [x] M1: Models completed
 - [x] M2: Isar storage completed (project update flow done)
 - [x] M3: Riverpod state completed
