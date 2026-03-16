@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import '../models/item.dart';
 import '../models/project.dart';
@@ -152,9 +153,42 @@ class _CalendarTab extends ConsumerStatefulWidget {
 
 class _CalendarTabState extends ConsumerState<_CalendarTab> {
   DateTime _selectedDate = DateTime.now();
+  DateTime _focusedDate = DateTime.now();
 
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  List<Item> _itemsForDay(List<Item> items, DateTime day) {
+    return items.where((item) => item.targetDate != null && _isSameDay(item.targetDate!, day)).toList();
+  }
+
+  bool _isBeforeToday(DateTime date, DateTime today) {
+    final d = DateTime(date.year, date.month, date.day);
+    final t = DateTime(today.year, today.month, today.day);
+    return d.isBefore(t);
+  }
+
+  Color _markerColorForDay({
+    required DateTime day,
+    required List<Item> dayItems,
+    required ColorScheme scheme,
+  }) {
+    final now = DateTime.now();
+    final hasOverdue = dayItems.any((item) {
+      final target = item.targetDate;
+      return target != null && _isBeforeToday(target, now) && !item.isChecked && !item.isExcluded;
+    });
+    if (hasOverdue) {
+      return const Color(0xFFE11D48); // red-ish
+    }
+
+    final isToday = _isSameDay(day, now);
+    if (isToday) {
+      return const Color(0xFFF59E0B); // amber
+    }
+
+    return scheme.tertiary; // future/default
   }
 
   @override
@@ -165,17 +199,70 @@ class _CalendarTabState extends ConsumerState<_CalendarTab> {
     return projectsAsync.when(
       data: (projects) => itemsAsync.when(
         data: (items) {
-          final dateItems = items.where((item) => item.targetDate != null && _isSameDay(item.targetDate!, _selectedDate)).toList()
+          final dateItems = _itemsForDay(items, _selectedDate)
             ..sort((a, b) => a.targetDate!.compareTo(b.targetDate!));
           final projectMap = {for (final project in projects) project.id: project.title};
 
           return Column(
             children: [
-              CalendarDatePicker(
-                initialDate: _selectedDate,
-                firstDate: DateTime(2020),
-                lastDate: DateTime(2100),
-                onDateChanged: (date) => setState(() => _selectedDate = date),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: TableCalendar<Item>(
+                  firstDay: DateTime(2020),
+                  lastDay: DateTime(2100),
+                  focusedDay: _focusedDate,
+                  selectedDayPredicate: (day) => isSameDay(day, _selectedDate),
+                  eventLoader: (day) => _itemsForDay(items, day),
+                  calendarFormat: CalendarFormat.month,
+                  onDaySelected: (selectedDay, focusedDay) {
+                    setState(() {
+                      _selectedDate = selectedDay;
+                      _focusedDate = focusedDay;
+                    });
+                  },
+                  onPageChanged: (focusedDay) {
+                    _focusedDate = focusedDay;
+                  },
+                  calendarStyle: CalendarStyle(
+                    selectedDecoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    todayDecoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.35),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  calendarBuilders: CalendarBuilders(
+                    markerBuilder: (context, day, dayItems) {
+                      if (dayItems.isEmpty) return const SizedBox.shrink();
+                      final color = _markerColorForDay(
+                        day: day,
+                        dayItems: dayItems,
+                        scheme: Theme.of(context).colorScheme,
+                      );
+
+                      return Positioned(
+                        bottom: 4,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(
+                            dayItems.length > 3 ? 3 : dayItems.length,
+                            (index) => Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 1),
+                              width: 5,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -185,6 +272,19 @@ class _CalendarTabState extends ConsumerState<_CalendarTab> {
                     'Items on ${DateFormat.yMMMd().format(_selectedDate)}',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: const [
+                    _LegendDot(color: Color(0xFFE11D48), label: 'Overdue'),
+                    SizedBox(width: 12),
+                    _LegendDot(color: Color(0xFFF59E0B), label: 'Today'),
+                    SizedBox(width: 12),
+                    _LegendDot(color: Color(0xFF2A9D8F), label: 'Upcoming'),
+                  ],
                 ),
               ),
               const SizedBox(height: 8),
@@ -334,5 +434,34 @@ class _ProjectCard extends ConsumerWidget {
         .animate(delay: Duration(milliseconds: 45 * index))
         .fadeIn(duration: 260.ms)
         .slideY(begin: 0.08, end: 0, duration: 260.ms, curve: Curves.easeOutCubic);
+  }
+}
+
+class _LegendDot extends StatelessWidget {
+  const _LegendDot({
+    required this.color,
+    required this.label,
+  });
+
+  final Color color;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
   }
 }
