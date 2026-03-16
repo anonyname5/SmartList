@@ -7,6 +7,10 @@ class ItemRepository {
 
   final Isar _isar;
 
+  Stream<List<Item>> watchAll() {
+    return _isar.items.where().sortByCreatedAt().watch(fireImmediately: true);
+  }
+
   Stream<List<Item>> watchByProjectId(int projectId) {
     return _isar.items.filter().projectIdEqualTo(projectId).sortByCreatedAt().watch(fireImmediately: true);
   }

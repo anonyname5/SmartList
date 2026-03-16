@@ -11,6 +11,12 @@ final projectItemsProvider = StreamProvider.family<List<Item>, int>((ref, projec
   yield* repository.watchByProjectId(projectId);
 });
 
+final allItemsProvider = StreamProvider<List<Item>>((ref) async* {
+  final isar = await ref.watch(databaseProvider.future);
+  final repository = ItemRepository(isar);
+  yield* repository.watchAll();
+});
+
 final itemActionsProvider = Provider<ItemActions>((ref) {
   return ItemActionsImpl(ref);
 });
