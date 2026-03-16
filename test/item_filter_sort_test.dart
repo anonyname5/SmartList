@@ -49,6 +49,18 @@ void main() {
     expect(result.length, 2);
   });
 
+  test('Filters by selected category chip', () {
+    final result = applyItemSearchAndSort(
+      items: items,
+      query: '',
+      sortOption: ItemSortOption.newest,
+      selectedCategory: 'Lighting',
+    );
+
+    expect(result.length, 1);
+    expect(result.first.name, 'Lamp');
+  });
+
   test('Sorts by price low to high', () {
     final result = applyItemSearchAndSort(
       items: items,

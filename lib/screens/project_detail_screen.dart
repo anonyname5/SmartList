@@ -25,6 +25,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   ItemSortOption _sortOption = ItemSortOption.newest;
+  String? _selectedCategory;
 
   @override
   void dispose() {
@@ -45,6 +46,16 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       case ItemSortOption.purchasedFirst:
         return 'Purchased First';
     }
+  }
+
+  List<String> _extractCategories(List<Item> items) {
+    final categories = items
+        .map((item) => item.category?.trim() ?? '')
+        .where((category) => category.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return categories;
   }
 
   @override
@@ -133,10 +144,20 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           Expanded(
             child: itemsAsync.when(
               data: (items) {
+                final categories = _extractCategories(items);
+                if (_selectedCategory != null && !categories.contains(_selectedCategory)) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      setState(() => _selectedCategory = null);
+                    }
+                  });
+                }
+
                 final visibleItems = applyItemSearchAndSort(
                   items: items,
                   query: _searchQuery,
                   sortOption: _sortOption,
+                  selectedCategory: _selectedCategory,
                 );
 
                 if (items.isEmpty) {
@@ -163,11 +184,45 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                   );
                 }
 
-                return ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: visibleItems.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) => _ItemTile(item: visibleItems[index]),
+                return Column(
+                  children: [
+                    if (categories.isNotEmpty)
+                      SizedBox(
+                        height: 42,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                label: const Text('All'),
+                                selected: _selectedCategory == null,
+                                onSelected: (_) => setState(() => _selectedCategory = null),
+                              ),
+                            ),
+                            ...categories.map(
+                              (category) => Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: ChoiceChip(
+                                  label: Text(category),
+                                  selected: _selectedCategory == category,
+                                  onSelected: (_) => setState(() => _selectedCategory = category),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Expanded(
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        itemCount: visibleItems.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) => _ItemTile(item: visibleItems[index]),
+                      ),
+                    ),
+                  ],
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),

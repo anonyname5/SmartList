@@ -12,13 +12,21 @@ List<Item> applyItemSearchAndSort({
   required List<Item> items,
   required String query,
   required ItemSortOption sortOption,
+  String? selectedCategory,
 }) {
   final normalizedQuery = query.trim().toLowerCase();
+  final normalizedCategory = selectedCategory?.trim().toLowerCase();
 
   final filtered = items.where((item) {
+    final itemCategory = item.category?.trim().toLowerCase();
+    final categoryMatches = normalizedCategory == null ||
+        normalizedCategory.isEmpty ||
+        (itemCategory != null && itemCategory == normalizedCategory);
+    if (!categoryMatches) return false;
+
     if (normalizedQuery.isEmpty) return true;
     return item.name.toLowerCase().contains(normalizedQuery) ||
-        (item.category?.toLowerCase().contains(normalizedQuery) ?? false);
+        (itemCategory?.contains(normalizedQuery) ?? false);
   }).toList();
 
   switch (sortOption) {
