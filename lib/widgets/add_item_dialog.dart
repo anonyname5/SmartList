@@ -90,52 +90,58 @@ class _AddItemDialogState extends ConsumerState<AddItemDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      scrollable: true,
       title: Text(widget.item == null ? 'Add Item' : 'Edit Item'),
       content: Form(
         key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Item Name'),
-              validator: Item.validateName,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _priceController,
-              decoration: const InputDecoration(labelText: 'Price'),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              validator: Item.validatePrice,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _categoryController,
-              decoration: const InputDecoration(labelText: 'Category (Optional)'),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _targetDate == null
-                        ? 'Target Date: Not set'
-                        : 'Target Date: ${DateFormat.yMMMd().format(_targetDate!)}',
-                  ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Item Name'),
+                validator: Item.validateName,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _priceController,
+                decoration: const InputDecoration(labelText: 'Price'),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                validator: Item.validatePrice,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _categoryController,
+                decoration: const InputDecoration(labelText: 'Category (Optional)'),
+              ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _targetDate == null
+                      ? 'Target Date: Not set'
+                      : 'Target Date: ${DateFormat.yMMMd().format(_targetDate!)}',
                 ),
-                TextButton(
-                  onPressed: _saving ? null : _pickTargetDate,
-                  child: const Text('Pick Date'),
-                ),
-                if (_targetDate != null)
-                  IconButton(
-                    onPressed: _saving ? null : () => setState(() => _targetDate = null),
-                    icon: const Icon(Icons.clear),
-                    tooltip: 'Clear date',
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  TextButton(
+                    onPressed: _saving ? null : _pickTargetDate,
+                    child: const Text('Pick Date'),
                   ),
-              ],
-            ),
-          ],
+                  if (_targetDate != null)
+                    TextButton(
+                      onPressed: _saving ? null : () => setState(() => _targetDate = null),
+                      child: const Text('Clear'),
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
       actions: [
