@@ -32,10 +32,25 @@ const ProjectSchema = CollectionSchema(
       name: r'createdDate',
       type: IsarType.dateTime,
     ),
-    r'title': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 3,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'syncId': PropertySchema(
+      id: 4,
+      name: r'syncId',
+      type: IsarType.string,
+    ),
+    r'title': PropertySchema(
+      id: 5,
       name: r'title',
       type: IsarType.string,
+    ),
+    r'updatedAt': PropertySchema(
+      id: 6,
+      name: r'updatedAt',
+      type: IsarType.dateTime,
     )
   },
   estimateSize: _projectEstimateSize,
@@ -43,7 +58,21 @@ const ProjectSchema = CollectionSchema(
   deserialize: _projectDeserialize,
   deserializeProp: _projectDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'syncId': IndexSchema(
+      id: 7538593479801827566,
+      name: r'syncId',
+      unique: true,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'syncId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
   links: {},
   embeddedSchemas: {},
   getId: _projectGetId,
@@ -58,6 +87,7 @@ int _projectEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.syncId.length * 3;
   bytesCount += 3 + object.title.length * 3;
   return bytesCount;
 }
@@ -71,7 +101,10 @@ void _projectSerialize(
   writer.writeDouble(offsets[0], object.budget);
   writer.writeLong(offsets[1], object.budgetCents);
   writer.writeDateTime(offsets[2], object.createdDate);
-  writer.writeString(offsets[3], object.title);
+  writer.writeDateTime(offsets[3], object.deletedAt);
+  writer.writeString(offsets[4], object.syncId);
+  writer.writeString(offsets[5], object.title);
+  writer.writeDateTime(offsets[6], object.updatedAt);
 }
 
 Project _projectDeserialize(
@@ -82,11 +115,14 @@ Project _projectDeserialize(
 ) {
   final object = Project(
     budget: reader.readDoubleOrNull(offsets[0]),
+    deletedAt: reader.readDateTimeOrNull(offsets[3]),
     id: id,
-    title: reader.readString(offsets[3]),
+    title: reader.readString(offsets[5]),
   );
   object.budgetCents = reader.readLongOrNull(offsets[1]);
   object.createdDate = reader.readDateTime(offsets[2]);
+  object.syncId = reader.readString(offsets[4]);
+  object.updatedAt = reader.readDateTime(offsets[6]);
   return object;
 }
 
@@ -104,7 +140,13 @@ P _projectDeserializeProp<P>(
     case 2:
       return (reader.readDateTime(offset)) as P;
     case 3:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 4:
       return (reader.readString(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -120,6 +162,60 @@ List<IsarLinkBase<dynamic>> _projectGetLinks(Project object) {
 
 void _projectAttach(IsarCollection<dynamic> col, Id id, Project object) {
   object.id = id;
+}
+
+extension ProjectByIndex on IsarCollection<Project> {
+  Future<Project?> getBySyncId(String syncId) {
+    return getByIndex(r'syncId', [syncId]);
+  }
+
+  Project? getBySyncIdSync(String syncId) {
+    return getByIndexSync(r'syncId', [syncId]);
+  }
+
+  Future<bool> deleteBySyncId(String syncId) {
+    return deleteByIndex(r'syncId', [syncId]);
+  }
+
+  bool deleteBySyncIdSync(String syncId) {
+    return deleteByIndexSync(r'syncId', [syncId]);
+  }
+
+  Future<List<Project?>> getAllBySyncId(List<String> syncIdValues) {
+    final values = syncIdValues.map((e) => [e]).toList();
+    return getAllByIndex(r'syncId', values);
+  }
+
+  List<Project?> getAllBySyncIdSync(List<String> syncIdValues) {
+    final values = syncIdValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'syncId', values);
+  }
+
+  Future<int> deleteAllBySyncId(List<String> syncIdValues) {
+    final values = syncIdValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'syncId', values);
+  }
+
+  int deleteAllBySyncIdSync(List<String> syncIdValues) {
+    final values = syncIdValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'syncId', values);
+  }
+
+  Future<Id> putBySyncId(Project object) {
+    return putByIndex(r'syncId', object);
+  }
+
+  Id putBySyncIdSync(Project object, {bool saveLinks = true}) {
+    return putByIndexSync(r'syncId', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllBySyncId(List<Project> objects) {
+    return putAllByIndex(r'syncId', objects);
+  }
+
+  List<Id> putAllBySyncIdSync(List<Project> objects, {bool saveLinks = true}) {
+    return putAllByIndexSync(r'syncId', objects, saveLinks: saveLinks);
+  }
 }
 
 extension ProjectQueryWhereSort on QueryBuilder<Project, Project, QWhere> {
@@ -193,6 +289,51 @@ extension ProjectQueryWhere on QueryBuilder<Project, Project, QWhereClause> {
         upper: upperId,
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterWhereClause> syncIdEqualTo(
+      String syncId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'syncId',
+        value: [syncId],
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterWhereClause> syncIdNotEqualTo(
+      String syncId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'syncId',
+              lower: [],
+              upper: [syncId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'syncId',
+              lower: [syncId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'syncId',
+              lower: [syncId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'syncId',
+              lower: [],
+              upper: [syncId],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }
@@ -399,6 +540,75 @@ extension ProjectQueryFilter
     });
   }
 
+  QueryBuilder<Project, Project, QAfterFilterCondition> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> deletedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Project, Project, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -447,6 +657,136 @@ extension ProjectQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> syncIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'syncId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> syncIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'syncId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> syncIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'syncId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> syncIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'syncId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> syncIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'syncId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> syncIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'syncId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> syncIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'syncId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> syncIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'syncId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> syncIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'syncId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> syncIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'syncId',
+        value: '',
       ));
     });
   }
@@ -580,6 +920,59 @@ extension ProjectQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> updatedAtEqualTo(
+      DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'updatedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> updatedAtGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'updatedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> updatedAtLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'updatedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterFilterCondition> updatedAtBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'updatedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension ProjectQueryObject
@@ -625,6 +1018,30 @@ extension ProjectQuerySortBy on QueryBuilder<Project, Project, QSortBy> {
     });
   }
 
+  QueryBuilder<Project, Project, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterSortBy> sortBySyncId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterSortBy> sortBySyncIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Project, Project, QAfterSortBy> sortByTitle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.asc);
@@ -634,6 +1051,18 @@ extension ProjectQuerySortBy on QueryBuilder<Project, Project, QSortBy> {
   QueryBuilder<Project, Project, QAfterSortBy> sortByTitleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterSortBy> sortByUpdatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterSortBy> sortByUpdatedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.desc);
     });
   }
 }
@@ -676,6 +1105,18 @@ extension ProjectQuerySortThenBy
     });
   }
 
+  QueryBuilder<Project, Project, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Project, Project, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -688,6 +1129,18 @@ extension ProjectQuerySortThenBy
     });
   }
 
+  QueryBuilder<Project, Project, QAfterSortBy> thenBySyncId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterSortBy> thenBySyncIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Project, Project, QAfterSortBy> thenByTitle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.asc);
@@ -697,6 +1150,18 @@ extension ProjectQuerySortThenBy
   QueryBuilder<Project, Project, QAfterSortBy> thenByTitleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterSortBy> thenByUpdatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Project, Project, QAfterSortBy> thenByUpdatedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.desc);
     });
   }
 }
@@ -721,10 +1186,29 @@ extension ProjectQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Project, Project, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
+  QueryBuilder<Project, Project, QDistinct> distinctBySyncId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'syncId', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Project, Project, QDistinct> distinctByTitle(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'title', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Project, Project, QDistinct> distinctByUpdatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'updatedAt');
     });
   }
 }
@@ -755,9 +1239,27 @@ extension ProjectQueryProperty
     });
   }
 
+  QueryBuilder<Project, DateTime?, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
+    });
+  }
+
+  QueryBuilder<Project, String, QQueryOperations> syncIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'syncId');
+    });
+  }
+
   QueryBuilder<Project, String, QQueryOperations> titleProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'title');
+    });
+  }
+
+  QueryBuilder<Project, DateTime, QQueryOperations> updatedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'updatedAt');
     });
   }
 }

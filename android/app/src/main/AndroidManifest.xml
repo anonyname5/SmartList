@@ -34,7 +34,7 @@
         <receiver
             android:name=".SmartListHomeWidgetProvider"
             android:exported="false"
-            android:label="SmartList Widget">
+            android:label="SmartList Widget (Detailed)">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -42,6 +42,19 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/smartlist_home_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".SmartListCompactWidgetProvider"
+            android:exported="false"
+            android:label="SmartList Widget (Compact)">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/smartlist_compact_widget_info" />
         </receiver>
     </application>
     <!-- Required to query activities that can process text, see:

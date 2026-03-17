@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shad_ui_flutter/shad_ui_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
 
+import 'firebase_options.dart';
 import 'providers/theme_provider.dart';
+import 'services/auth_service.dart';
 import 'screens/home_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await AuthService.ensureAnonymousSignIn();
   runApp(const ProviderScope(child: SmartListApp()));
 }
 

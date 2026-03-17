@@ -5,7 +5,10 @@ import '../utils/calculation.dart';
 import '../utils/currency.dart';
 
 class HomeWidgetService {
-  static const _providerName = 'SmartListHomeWidgetProvider';
+  static const _providerNames = <String>[
+    'SmartListHomeWidgetProvider',
+    'SmartListCompactWidgetProvider',
+  ];
 
   static bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
@@ -24,6 +27,8 @@ class HomeWidgetService {
     await HomeWidget.saveWidgetData<String>('smartlist_bought', formatCurrency(bought));
     await HomeWidget.saveWidgetData<String>('smartlist_remaining', formatCurrency(remainingTotal));
 
-    await HomeWidget.updateWidget(name: _providerName);
+    for (final providerName in _providerNames) {
+      await HomeWidget.updateWidget(name: providerName);
+    }
   }
 }

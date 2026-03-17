@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 
 import '../utils/money.dart';
+import '../utils/sync_id.dart';
 
 part 'project.g.dart';
 
@@ -11,13 +12,22 @@ class Project {
     required this.title,
     double? budget,
     DateTime? initialCreatedDate,
+    String? initialSyncId,
+    DateTime? initialUpdatedAt,
+    this.deletedAt,
   })  : budgetCents = budget == null ? null : toCents(budget),
-        createdDate = initialCreatedDate ?? DateTime.now();
+        createdDate = initialCreatedDate ?? DateTime.now(),
+        syncId = initialSyncId ?? newSyncId(),
+        updatedAt = initialUpdatedAt ?? DateTime.now();
 
   Id id;
+  @Index(unique: true)
+  String syncId;
   String title;
   int? budgetCents;
   DateTime createdDate;
+  DateTime updatedAt;
+  DateTime? deletedAt;
 
   double? get budget => budgetCents == null ? null : fromCents(budgetCents!);
 
