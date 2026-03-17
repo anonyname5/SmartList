@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "266783853762",
+    "project_id": "smartlist-29db5",
+    "storage_bucket": "smartlist-29db5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:266783853762:android:2e33682dd3ec432eb6bf5b",
+        "android_client_info": {
+          "package_name": "com.anonyname5.smartlist"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "266783853762-2k5jpa7uer2dpajq178lgprm9hnttrd7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.anonyname5.smartlist",
+            "certificate_hash": "3b421b27b82537732a0f77143c1ddff1c2f99cd4"
+          }
+        },
+        {
+          "client_id": "266783853762-dlrt6a5ak2jhmli5i71n656gsforqt27.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnOFFgsd_w5OovAb-MLG9ihOIEEDXEMjU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "266783853762-dlrt6a5ak2jhmli5i71n656gsforqt27.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

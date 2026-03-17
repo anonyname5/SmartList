@@ -9,7 +9,10 @@ import '../models/project.dart';
 import '../providers/item_provider.dart';
 import '../providers/project_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/database_provider.dart';
 import '../services/home_widget_service.dart';
+import '../services/sync_service.dart';
+import '../services/auth_service.dart';
 import '../utils/calculation.dart';
 import '../utils/currency.dart';
 import '../widgets/create_project_dialog.dart';
@@ -46,12 +49,133 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.dispose();
   }
 
+  Future<void> _signInWithGoogle() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final previousUid = AuthService.currentUser?.uid;
+    try {
+      await AuthService.signInWithGoogleAndLinkAnonymous();
+      if (!mounted) return;
+      final nextUid = AuthService.currentUser?.uid;
+      if (previousUid != null && nextUid != null && previousUid != nextUid) {
+        final isar = await ref.read(databaseProvider.future);
+        await isar.writeTxn(() async {
+          await isar.clear();
+        });
+      }
+      final isar = await ref.read(databaseProvider.future);
+      await SyncService.syncNow(isar);
+      if (!mounted) return;
+      setState(() {});
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Signed in with Google and synced')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text('Auth failed: $error')));
+    }
+  }
+
+  Future<void> _signOutToGuest() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final previousUid = AuthService.currentUser?.uid;
+    try {
+      await AuthService.signOutToGuest();
+      if (!mounted) return;
+      final nextUid = AuthService.currentUser?.uid;
+      if (previousUid != null && nextUid != null && previousUid != nextUid) {
+        final isar = await ref.read(databaseProvider.future);
+        await isar.writeTxn(() async {
+          await isar.clear();
+        });
+      }
+      setState(() {});
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Signed out, now using guest mode')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text('Auth failed: $error')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = AuthService.currentUser;
+    final isGuest = user == null || user.isAnonymous;
+    final accountLabel = user?.email ?? user?.uid ?? 'Unknown account';
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_title),
         actions: [
+          IconButton(
+            tooltip: 'Sync now',
+            icon: const Icon(Icons.sync),
+            onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Sync started...')),
+              );
+              try {
+                final isar = await ref.read(databaseProvider.future);
+                final summary = await SyncService.syncNow(isar);
+                if (!mounted) return;
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Synced. Up: ${summary.uploadedProjects} projects, ${summary.uploadedItems} items. '
+                      'Down: ${summary.downloadedProjects} projects, ${summary.downloadedItems} items.',
+                    ),
+                  ),
+                );
+              } catch (error) {
+                if (!mounted) return;
+                messenger.showSnackBar(
+                  SnackBar(content: Text('Sync failed: $error')),
+                );
+              }
+            },
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'Account',
+            icon: const Icon(Icons.account_circle_outlined),
+            onSelected: (value) async {
+              if (value == 'sign-in-google') {
+                await _signInWithGoogle();
+              } else if (value == 'sign-out-guest') {
+                await _signOutToGuest();
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem<String>(
+                enabled: false,
+                value: 'status',
+                child: Text(
+                  isGuest ? 'Guest mode' : 'Signed in',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+              if (!isGuest)
+                PopupMenuItem<String>(
+                  enabled: false,
+                  value: 'email',
+                  child: Text(
+                    accountLabel,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+              if (isGuest)
+                const PopupMenuItem<String>(
+                  value: 'sign-in-google',
+                  child: Text('Sign in with Google'),
+                ),
+              if (!isGuest)
+                const PopupMenuItem<String>(
+                  value: 'sign-out-guest',
+                  child: Text('Sign out to guest'),
+                ),
+            ],
+          ),
           PopupMenuButton<ThemeMode>(
             tooltip: 'Theme mode',
             icon: const Icon(Icons.palette_outlined),
@@ -74,7 +198,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
-      body: _tabIndex == 0 ? const _ProjectsTab() : const _CalendarTab(),
+      body: Column(
+        children: [
+          _AccountStatusBanner(
+            isGuest: isGuest,
+            accountLabel: accountLabel,
+            onSignIn: _signInWithGoogle,
+            onSignOut: _signOutToGuest,
+          ),
+          Expanded(
+            child: _tabIndex == 0 ? const _ProjectsTab() : const _CalendarTab(),
+          ),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tabIndex,
         onDestinationSelected: (index) => setState(() => _tabIndex = index),
@@ -99,6 +235,61 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               icon: const Icon(Icons.add),
             )
           : null,
+    );
+  }
+}
+
+class _AccountStatusBanner extends StatelessWidget {
+  const _AccountStatusBanner({
+    required this.isGuest,
+    required this.accountLabel,
+    required this.onSignIn,
+    required this.onSignOut,
+  });
+
+  final bool isGuest;
+  final String accountLabel;
+  final Future<void> Function() onSignIn;
+  final Future<void> Function() onSignOut;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Icon(
+                isGuest ? Icons.cloud_off_outlined : Icons.cloud_done_outlined,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isGuest ? 'Sync account: Guest mode' : 'Sync account: Signed in',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    if (!isGuest)
+                      Text(
+                        accountLabel,
+                        style: Theme.of(context).textTheme.bodySmall,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: isGuest ? onSignIn : onSignOut,
+                child: Text(isGuest ? 'Sign in' : 'Sign out'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

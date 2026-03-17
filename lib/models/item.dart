@@ -1,6 +1,7 @@
 import 'package:isar/isar.dart';
 
 import '../utils/money.dart';
+import '../utils/sync_id.dart';
 
 part 'item.g.dart';
 
@@ -9,20 +10,31 @@ class Item {
   Item({
     this.id = Isar.autoIncrement,
     required this.projectId,
+    String? initialProjectSyncId,
     required this.name,
     required double price,
     this.isChecked = false,
     this.isExcluded = false,
     this.targetDate,
     DateTime? initialCreatedAt,
+    String? initialSyncId,
+    DateTime? initialUpdatedAt,
+    this.deletedAt,
     this.category,
   })  : priceCents = toCents(price),
-        createdAt = initialCreatedAt ?? DateTime.now();
+        createdAt = initialCreatedAt ?? DateTime.now(),
+        projectSyncId = initialProjectSyncId ?? 'project-$projectId',
+        syncId = initialSyncId ?? newSyncId(),
+        updatedAt = initialUpdatedAt ?? DateTime.now();
 
   Id id;
+  @Index(unique: true)
+  String syncId;
 
   @Index()
   int projectId;
+  @Index()
+  String projectSyncId;
 
   String name;
   int priceCents;
@@ -30,6 +42,8 @@ class Item {
   bool isExcluded;
   DateTime? targetDate;
   DateTime createdAt;
+  DateTime updatedAt;
+  DateTime? deletedAt;
   String? category;
 
   double get price => fromCents(priceCents);
